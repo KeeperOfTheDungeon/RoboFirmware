@@ -2,13 +2,15 @@ from machine import Pin
 from time import sleep
 import rp2
 
-@rp2.asm_pio(sideset_init=rp2.PIO.OUT_LOW, set_init=rp2.PIO.OUT_LOW)
+@rp2.asm_pio(sideset_init=rp2.PIO.OUT_LOW, out_init=rp2.PIO.OUT_LOW)
 def tx():
     
+    pull()
+
     wrap_target()   #start
     
     wait(1, pins, 0)
-    nop()    .side(1)
+    out(pins, 1)
     nop()           [7]
     nop()           [7]
     nop()           [7]
@@ -17,7 +19,6 @@ def tx():
     nop()           [7]
     nop()           [7]
     nop()           [7]
-    nop()    .side(0)
     
     wrap()
     
@@ -36,16 +37,12 @@ def cl():
     wrap()
    
 
-sm_tx = rp2.StateMachine(0, tx, freq=2000, set_base=Pin(0), sideset_base=Pin('LED'))
+sm_tx = rp2.StateMachine(0, tx, freq=2000, in_base=Pin(0), out_base=Pin('LED'), out_shiftdir=rp2.PIO.SHIFT_RIGHT)
 sm_cl = rp2.StateMachine(1, cl, freq=2000, set_base=Pin(0))
-
-def count():
-    print('Beep')
-
-rp2.PIO(0).irq(count())
 
 sm_tx.active(1)
 sm_cl.active(1)
+sm_tx.put(5461) #0b1010101010101
 sleep(3.0)
 sm_tx.active(0)
 sm_cl.active(0)
