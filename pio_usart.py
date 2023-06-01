@@ -2,7 +2,7 @@ from machine import Pin
 from time import sleep
 import rp2
 
-@rp2.asm_pio(out_init=rp2.PIO.OUT_LOW)
+@rp2.asm_pio(out_init=rp2.PIO.OUT_LOW, out_shiftdir=rp2.PIO.SHIFT_RIGHT)
 def tx():
     
     pull()
@@ -21,20 +21,18 @@ def tx():
     
     wrap()
     
-@rp2.asm_pio()
+@rp2.asm_pio(in_shiftdir=rp2.PIO.SHIFT_RIGHT)
 def rx():
     wrap_target()   # start
     
     
     set(x, 8)
     label('single_frame')
-    
     wait(1, pins, 25)
     in_(pins, 1)
-    
     jmp(x_dec, 'single_frame')
     
-    push
+    push()
     wrap()
     
 @rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
@@ -52,15 +50,19 @@ def cl():
     wrap()
    
 
-sm_tx = rp2.StateMachine(0, tx, freq=2000, out_base=Pin(0), out_shiftdir=rp2.PIO.SHIFT_RIGHT)
-sm_rx = rp2.StateMachine(1, tx, freq=2000, in_base=Pin(1), in_shiftdir=rp2.PIO.SHIFT_RIGHT)
+sm_tx = rp2.StateMachine(0, tx, freq=2000, out_base=Pin(0))
+sm_rx = rp2.StateMachine(1, rx, freq=2000, in_base=Pin(1))
 sm_cl = rp2.StateMachine(2, cl, freq=2000, set_base=Pin('LED'))
 
+sm_rx.irq(lambda x: print('Interrupt cleared'))
+
+print('state machines starting')
 sm_tx.active(1)
 sm_rx.active(1)
 sm_cl.active(1)
 
 sm_tx.put(5461) #0b1010101010101
+#print('message put')
 sleep(3.0)
 z = sm_rx.get()
 
