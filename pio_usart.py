@@ -2,6 +2,12 @@ from machine import Pin
 from time import sleep
 import rp2
 
+# clear programs form pio for clean restart
+rp2.PIO(0).remove_program()
+rp2.PIO(1).remove_program()
+
+# state machine programs
+
 @rp2.asm_pio(out_init=rp2.PIO.OUT_LOW, out_shiftdir=rp2.PIO.SHIFT_RIGHT, sideset_init=rp2.PIO.OUT_LOW, set_init=rp2.PIO.OUT_LOW)
 def tx():
     
@@ -40,7 +46,7 @@ def rx():
     
     irq(block, 0)
     #jmp('end')
-    
+    #nop()
     label('continue')
     push()
     #label('end')
@@ -57,7 +63,6 @@ def cl():
     nop()           [31]
     
     wrap()
-   
 
 sm_tx = rp2.StateMachine(0, tx, freq=2000, out_base=Pin(0), sideset_base=Pin(0), set_base=Pin(0))
 sm_rx = rp2.StateMachine(1, rx, freq=2000, in_base=Pin(1))
