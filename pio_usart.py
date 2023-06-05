@@ -1,54 +1,12 @@
 from machine import Pin
 from time import sleep
+from tx import tx
+from rx import rx
 import rp2
 
 # clear programs form pio for clean restart
 rp2.PIO(0).remove_program()
 rp2.PIO(1).remove_program()
-
-# state machine programs
-
-@rp2.asm_pio(out_init=rp2.PIO.OUT_LOW, out_shiftdir=rp2.PIO.SHIFT_RIGHT, sideset_init=rp2.PIO.OUT_LOW)
-def tx():
-    
-    wrap_target()   # start
-    pull()
-    # send message
-    set(x, 8)         .side(1)
-    label('single_frame')
-    
-    wait(1, pins, 25)
-    out(pins, 1)
-    
-    jmp(x_dec, 'single_frame')
-    
-    wait(1, pins, 25)    .side(1)   
-    wait(1, pins, 25)    .side(0)
-    
-    wrap()
-    
-@rp2.asm_pio(in_shiftdir=rp2.PIO.SHIFT_RIGHT)
-def rx():
-    wrap_target()   # start
-
-    wait(1, pins, 0)
-    
-    set(x, 8)
-    label('recieve')
-    wait(1, pins, 25)
-    in_(pins, 1)
-    jmp(x_dec, 'recieve')
-    
-    wait(1, pins, 25)
-    jmp(pins, 'continue')
-    
-    irq(block, 0)
-    jmp('end')
-    
-    label('continue')
-    push()
-    label('end')
-    wrap()
     
 @rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
 def cl():
