@@ -16,7 +16,6 @@ def tx():
     
     jmp(x_dec, 'single_frame')
     
-    # end bit TODO: not working
     wait(1, pins, 25)
     nop()    .side(1)
     wait(1, pins, 25)
@@ -40,11 +39,11 @@ def rx():
     jmp(pins, 'continue')
     
     irq(block, 0)
-    jmp('end')
+    #jmp('end')
     
     label('continue')
     push()
-    label('end')
+    #label('end')
     wrap()
     
 @rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
