@@ -7,7 +7,7 @@ import rp2
 # clear programs form pio for clean restart
 rp2.PIO(0).remove_program()
 rp2.PIO(1).remove_program()
-    
+
 @rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
 def cl():
     
