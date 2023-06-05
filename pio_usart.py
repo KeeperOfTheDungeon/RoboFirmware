@@ -8,7 +8,7 @@ rp2.PIO(1).remove_program()
 
 # state machine programs
 
-@rp2.asm_pio(out_init=rp2.PIO.OUT_LOW, out_shiftdir=rp2.PIO.SHIFT_RIGHT, sideset_init=rp2.PIO.OUT_LOW, set_init=rp2.PIO.OUT_LOW)
+@rp2.asm_pio(out_init=rp2.PIO.OUT_LOW, out_shiftdir=rp2.PIO.SHIFT_RIGHT, sideset_init=rp2.PIO.OUT_LOW)
 def tx():
     
     wrap_target()   # start
@@ -22,10 +22,8 @@ def tx():
     
     jmp(x_dec, 'single_frame')
     
-    wait(1, pins, 25)
-    nop()    .side(1)
-    wait(1, pins, 25)
-    nop()    .side(0)
+    wait(1, pins, 25)    .side(1)   
+    wait(1, pins, 25)    .side(0)
     
     wrap()
     
@@ -45,11 +43,11 @@ def rx():
     jmp(pins, 'continue')
     
     irq(block, 0)
-    #jmp('end')
-    #nop()
+    jmp('end')
+    
     label('continue')
     push()
-    #label('end')
+    label('end')
     wrap()
     
 @rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
@@ -58,13 +56,11 @@ def cl():
     wrap_target()   #start
     
     set(pins, 1)    [31]
-    nop()           [31]
     set(pins, 0)    [31]
-    nop()           [31]
     
     wrap()
 
-sm_tx = rp2.StateMachine(0, tx, freq=2000, out_base=Pin(0), sideset_base=Pin(0), set_base=Pin(0))
+sm_tx = rp2.StateMachine(0, tx, freq=2000, out_base=Pin(0), sideset_base=Pin(0))
 sm_rx = rp2.StateMachine(1, rx, freq=2000, in_base=Pin(1))
 sm_cl = rp2.StateMachine(2, cl, freq=2000, set_base=Pin('LED'))
 
