@@ -15,6 +15,8 @@ def tx():
     out(pins, 1)
     
     jmp(x_dec, 'single_frame')
+    
+    # end bit TODO: not working
     wait(1, pins, 25)
     nop()    .side(1)
     wait(1, pins, 25)
@@ -25,15 +27,24 @@ def tx():
 @rp2.asm_pio(in_shiftdir=rp2.PIO.SHIFT_RIGHT)
 def rx():
     wrap_target()   # start
+
+    wait(1, pins, 0)
     
-    
-    set(x, 12)
-    label('single_frame')
+    set(x, 8)
+    label('recieve')
     wait(1, pins, 25)
     in_(pins, 1)
-    jmp(x_dec, 'single_frame')
+    jmp(x_dec, 'recieve')
     
+    wait(1, pins, 25)
+    jmp(pins, 'continue')
+    
+    irq(block, 0)
+    jmp('end')
+    
+    label('continue')
     push()
+    label('end')
     wrap()
     
 @rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
@@ -43,9 +54,7 @@ def cl():
     
     set(pins, 1)    [31]
     nop()           [31]
-    nop()           [31]
     set(pins, 0)    [31]
-    nop()           [31]
     nop()           [31]
     
     wrap()
@@ -63,7 +72,6 @@ sm_rx.active(1)
 sm_cl.active(1)
 
 sm_tx.put(341) #0b101010101
-#print('message put')
 sleep(3.0)
 z = sm_rx.get()
 
