@@ -8,21 +8,25 @@ import rp2
 rp2.PIO(0).remove_program()
 rp2.PIO(1).remove_program()
 
-@rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
+@rp2.asm_pio()
 def cl():
     
     wrap_target()   #start
     
-    set(pins, 1)    [31]
-    set(pins, 0)    [31]
+    wait(1, pins, 2)
+    irq(0)
+    #set(pins, 1)    [31]
+    #set(pins, 0)    [31]
     
     wrap()
 
-sm_tx = rp2.StateMachine(0, tx, freq=2000, out_base=Pin(0), sideset_base=Pin(0))
-sm_rx = rp2.StateMachine(1, rx, freq=2000, in_base=Pin(1))
-sm_cl = rp2.StateMachine(2, cl, freq=2000, set_base=Pin('LED'))
+Pin(1, Pin.IN, Pin.PULL_UP)
 
-sm_rx.irq(lambda x: print('Interrupt cleared'))
+sm_tx = rp2.StateMachine(0, tx, freq=5000, out_base=Pin(0), sideset_base=Pin(0))
+sm_rx = rp2.StateMachine(1, rx, freq=5000, in_base=Pin(1))
+sm_cl = rp2.StateMachine(2, cl, freq=5000, in_base=Pin(2))
+
+sm_cl.irq(lambda x: print('Interrupt cleared'))
 
 print('state machines starting')
 sm_tx.active(1)
