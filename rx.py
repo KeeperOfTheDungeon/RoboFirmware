@@ -10,7 +10,7 @@ import rp2
 def rx():
     wrap_target()   # start
 
-    wait(1, pins, 0) # start bit
+    wait(0, pins, 1) # start bit
     
     set(x, 8)
     label('recieve')
@@ -19,13 +19,13 @@ def rx():
     jmp(x_dec, 'recieve')
     
     wait(1, pins, 2)
-    jmp(pins, 'continue') # end bit
+    jmp(pins, 'exception') # end bit
     in_(null, 23)
     push()
     
     jmp('end')
     
-    label('continue')
+    label('exception')
     irq(block, 0)
     label('end')
     wrap()
