@@ -12,17 +12,20 @@ def tx():
     wrap_target()   # start
     pull()
     # send message
-    set(x, 8)         .side(0)
-    label('single_frame')
     
     wait(1, pins, 2)
+    set(x, 8)         .side(0)
+    wait(0, pins, 2)
+    label('single_frame')
+    wait(1, pins, 2)
     out(pins, 1)
-    
+    wait(0, pins, 2)
     jmp(x_dec, 'single_frame')
     
     wait(1, pins, 2)    .side(0)
     wait(0, pins, 2)
     wait(1, pins, 2)    .side(1)
+    wait(0, pins, 2)
     
     wrap()
 
@@ -31,17 +34,20 @@ def rx():
     wrap_target()   # start
 
     label('ready')
-    wait(1, pins, 2) # start bit
+    wait(0, pins, 2) # start bit
+    wait(1, pins, 2)
     jmp(pin, 'ready')
     
+    wait(0, pins, 2)
     set(x, 8)
     label('recieve')
     wait(1, pins, 2)
     in_(pins, 1)
+    wait(0, pins, 2)
     jmp(x_dec, 'recieve')
     
     wait(1, pins, 2)
-    jmp(pin, 'continue') # end bit
+    #jmp(pin, 'continue') # end bit
     in_(null, 23)
     push()
     
@@ -77,7 +83,7 @@ sm_tx.active(1)
 sm_rx.active(1)
 sm_cl.active(1)
 
-sm_tx.put(330) #0b101010101
+sm_tx.put(425) #0b101010101
 sleep(3.0)
 x = sm_rx.get()
 
