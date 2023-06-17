@@ -20,7 +20,8 @@ def tx():
     
     jmp(x_dec, 'single_frame')
     
-    wait(1, pins, 2)    .side(0)   
+    wait(1, pins, 2)    .side(0)
+    wait(0, pins, 2)
     wait(1, pins, 2)    .side(1)
     
     wrap()
@@ -29,7 +30,9 @@ def tx():
 def rx():
     wrap_target()   # start
 
-    wait(1, pins, 0) # start bit
+    label('ready')
+    wait(1, pins, 2) # start bit
+    jmp(pin, 'ready')
     
     set(x, 8)
     label('recieve')
@@ -38,7 +41,7 @@ def rx():
     jmp(x_dec, 'recieve')
     
     wait(1, pins, 2)
-    jmp(pins, 'continue') # end bit
+    jmp(pin, 'continue') # end bit
     in_(null, 23)
     push()
     
@@ -49,7 +52,7 @@ def rx():
     label('end')
     wrap()
 
-@rp2.asm_pio()
+@rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
 def cl():
     
     wrap_target()   #start
@@ -65,7 +68,7 @@ Pin(1, Pin.IN, Pin.PULL_UP)
 
 sm_tx = rp2.StateMachine(0, tx, freq=5000, out_base=Pin(0), sideset_base=Pin(0))
 sm_rx = rp2.StateMachine(1, rx, freq=5000, in_base=Pin(1))
-sm_cl = rp2.StateMachine(2, cl, freq=5000, set_base=Pin(2))
+sm_cl = rp2.StateMachine(2, cl, freq=2000, set_base=Pin(2))
 
 sm_rx.irq(lambda x: print('Interrupt cleared'))
 
@@ -74,12 +77,12 @@ sm_tx.active(1)
 sm_rx.active(1)
 sm_cl.active(1)
 
-sm_tx.put(341) #0b101010101
+sm_tx.put(330) #0b101010101
 sleep(3.0)
-z = sm_rx.get()
+x = sm_rx.get()
 
 sm_cl.active(0)
 sm_rx.active(0)
 sm_tx.active(0)
 
-print(z)
+print(x)
