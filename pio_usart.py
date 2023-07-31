@@ -27,7 +27,7 @@ def tx():
 
     #end bit
     wait(0, pins, 2)
-    mov(x,x)    .side(0)
+    mov(x,x)    .side(1)
     wait(1, pins, 2)
     
     
@@ -46,6 +46,8 @@ def rx():
     wait(0, pins, 2)
     wait(1, pins, 2)
     jmp(pin, 'ready')
+    
+    # prüfen ob vorher 1 und jetzt 0
 
     # accept message
     set(x, 8)
@@ -79,8 +81,8 @@ def rx():
 
 Pin(1, Pin.IN, Pin.PULL_UP)
 
-sm_tx = rp2.StateMachine(0, tx, freq=100000, out_base=Pin(0), sideset_base=Pin(0))
-sm_rx = rp2.StateMachine(1, rx, freq=100000, in_base=Pin(1))
+sm_tx = rp2.StateMachine(0, tx, freq=1000000, out_base=Pin(0), sideset_base=Pin(0))
+sm_rx = rp2.StateMachine(1, rx, freq=1000000, in_base=Pin(1))
 
 sm_rx.irq(lambda x: {print('error')})
 
@@ -89,7 +91,7 @@ print('starting state machines')
 sm_tx.active(1)
 sm_rx.active(1)
 
-sm_tx.put(3)
+sm_tx.put(0x0)
 sleep(5.0)
 x=sm_rx.get()
 print(x)
