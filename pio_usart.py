@@ -63,17 +63,17 @@ def rx():
 
     # wait for end bit
     wait(1, pins, 2)
-    jmp(pin, 'exception')
-
-    # normal execution
-    in_(null, 23)
-    push()
-
-    jmp('end')
+    jmp(pin, 'end_bit')
 
     # exception thrown to main thread
-    label('exception')
     irq(block, rel(0))
+    
+    jmp('end')
+
+    # normal execution
+    label('end_bit')
+    in_(null, 23)
+    push()
     
     label('end')
 
@@ -82,7 +82,7 @@ def rx():
 Pin(1, Pin.IN, Pin.PULL_UP)
 
 sm_tx = rp2.StateMachine(0, tx, freq=1000000, out_base=Pin(0), sideset_base=Pin(0))
-sm_rx = rp2.StateMachine(1, rx, freq=1000000, in_base=Pin(1))
+sm_rx = rp2.StateMachine(1, rx, freq=10000000, in_base=Pin(1), jmp_pin=Pin(1))
 
 sm_rx.irq(lambda x: {print('error')})
 
@@ -91,8 +91,7 @@ print('starting state machines')
 sm_tx.active(1)
 sm_rx.active(1)
 
-sm_tx.put(0x0)
-sleep(5.0)
+sm_tx.put(511)
 x=sm_rx.get()
 print(x)
 
