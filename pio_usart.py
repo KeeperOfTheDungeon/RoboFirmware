@@ -91,9 +91,9 @@ print('starting state machines')
 sm_tx.active(1)
 sm_rx.active(1)
 
-sm_tx.put(511)
-x=sm_rx.get()
-print(x)
+while True:
+    x=sm_rx.get()
+    print(x)
 
 sm_tx.active(0)
 sm_rx.active(0)
