@@ -1,3 +1,6 @@
+COMMAND_TOKEN = b'1FA'
+END_TOKEN = b'1FF'
+
 
 """
 output:
@@ -6,14 +9,14 @@ output:
     3. buffer
     4. send to pio
 """
-
-def string_tokenizer(message: str):
-    tokens = []
-    for token in message:
-        tokens.append(token)
-    return tokens
     
 
+def packer(message: str) -> bytes:
+    frame = bytearray(COMMAND_TOKEN)
+    frame += message.encode('ascii')
+    frame += END_TOKEN
+
+    return frame
 
 
 """
@@ -28,7 +31,6 @@ def string_tokenizer(message: str):
 
 # main function
 if __name__ == '__main__':
-    tokens = string_tokenizer('Goodbye World')
-    for token in tokens:
-        print(token)
+    tokens = packer('Goodbye World')
+    print(tokens)
     
