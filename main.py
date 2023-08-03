@@ -8,8 +8,10 @@ output:
 """
 
 def string_tokenizer(message: str):
+    tokens = []
     for token in message:
-        print(token + '\n')
+        tokens.append(token)
+    return tokens
     
 
 
@@ -26,4 +28,7 @@ def string_tokenizer(message: str):
 
 # main function
 if __name__ == '__main__':
-    string_tokenizer('Goodbye World')
+    tokens = string_tokenizer('Goodbye World')
+    for token in tokens:
+        print(token)
+    
