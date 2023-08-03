@@ -1,5 +1,13 @@
-COMMAND_TOKEN = b'1FA'
-END_TOKEN = b'1FF'
+COMMAND_TOKEN = b'#'
+MESSAGE_START_TOKEN = b'*'
+STREAM_START_TOKEN = b'$'
+
+EXCEPTION_START_TOKEN = b'^'
+ALLERT_START_TOKEN = b'!'
+
+OK_START_TOKEN = b'O'
+FAIL_START_TOKEN = b'N'
+END_TOKEN = b';'
 
 
 """
@@ -11,7 +19,7 @@ output:
 """
     
 
-def packer(message: str) -> bytes:
+def pack(message: str) -> bytes:
     frame = bytearray(COMMAND_TOKEN)
     frame += message.encode('ascii')
     frame += END_TOKEN
@@ -28,9 +36,11 @@ def packer(message: str) -> bytes:
         5. cmd output
 """
 
+def unpack(frame: bytearray) -> str:
+    return frame.decode('ascii')[1:len(frame) - 1]
 
 # main function
 if __name__ == '__main__':
-    tokens = packer('Goodbye World')
+    tokens = unpack(pack('Goodbye World'))
     print(tokens)
     
