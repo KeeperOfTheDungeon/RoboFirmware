@@ -24,32 +24,42 @@ def rx():
     
     wait(1, pins, 2)
     in_(pins, 1)
+    jmp(pin, 'control_bit')
     wait(0, pins, 2)
     
     jmp(x_dec, 'loop')
+    jmp('continue')
+    
+    # check if token is controll token
+    label('control_bit')
+    wait(0, pins, 2)
+    jmp(x_dec, 'loop')
+    irq(rel(0))
+    label('continue')
 
     # wait for end bit
     wait(1, pins, 2)
     jmp(pin, 'end_bit')
 
     # exception thrown to main thread
-    irq(block, rel(0))
+    set(y, 1)
+    in_(y, 23)
     
     jmp('end')
 
     # normal execution
     label('end_bit')
     in_(null, 23)
-    push()
     
     label('end')
+    push()
 
     wrap()
 
 Pin(1, Pin.IN, Pin.PULL_UP)
 sm_rx = rp2.StateMachine(1, rx, freq=10000000, in_base=Pin(1), jmp_pin=Pin(1))
 
-sm_rx.irq(lambda x: {print('error')})
+sm_rx.irq(lambda x: {print('Controll token recieved')})
 
 sm_rx.active(1)
 

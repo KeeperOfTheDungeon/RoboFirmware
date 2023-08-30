@@ -47,8 +47,6 @@ def rx():
     wait(1, pins, 2)
     jmp(pin, 'ready')
     
-    # prüfen ob vorher 1 und jetzt 0
-
     # accept message
     set(x, 8)
     wait(0, pins, 2)
@@ -57,9 +55,18 @@ def rx():
     
     wait(1, pins, 2)
     in_(pins, 1)
+    jmp(pin, 'control_bit')
     wait(0, pins, 2)
     
     jmp(x_dec, 'loop')
+    jmp('continue')
+    
+    # check if token is controll token
+    label('control_bit')
+    wait(0, pins, 2)
+    jmp(x_dec, 'loop')
+    irq(rel(0))
+    label('continue')
 
     # wait for end bit
     wait(1, pins, 2)
