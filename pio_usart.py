@@ -27,7 +27,7 @@ def tx():
 
     #end bit
     wait(0, pins, 2)
-    mov(x,x)    .side(1)
+    mov(x,x)    .side(0)
     wait(1, pins, 2)
     
     
@@ -66,16 +66,17 @@ def rx():
     jmp(pin, 'end_bit')
 
     # exception thrown to main thread
-    irq(block, rel(0))
+    set(y, 1)
+    in_(y, 23)
     
     jmp('end')
 
     # normal execution
     label('end_bit')
     in_(null, 23)
-    push()
     
     label('end')
+    push()
 
     wrap()
 
@@ -92,8 +93,10 @@ sm_tx.active(1)
 sm_rx.active(1)
 
 while True:
-    x=sm_rx.get()
-    print(x)
+    x = input('Enter Number to send:\n')
+    sm_tx.put(int(x))
+    y = sm_rx.get()
+    print(y)
 
 sm_tx.active(0)
 sm_rx.active(0)
