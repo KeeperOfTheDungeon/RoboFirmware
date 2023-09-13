@@ -2,8 +2,10 @@ from machine import Pin
 from time import sleep
 import rp2
 from micropython import const
+from array import array
 
 CLOCK_PIN = const(2)
+TOKEN_BUFFER_SIZE = const(64)
 
 # clear programs form pio for clean restart
 rp2.PIO(0).remove_program()
@@ -59,16 +61,18 @@ def rx():
 Pin(1, Pin.IN, Pin.PULL_UP)
 
 sm_rx = rp2.StateMachine(1, rx, freq=10000000, in_base=Pin(1), set_base=Pin(25), jmp_pin=Pin(1))
-toke_buffer = array('h', [0 for i in range(TOKEN_BUFFER_SIZE)])
+token_buffer = array('h', [0 for i in range(TOKEN_BUFFER_SIZE)])
 token_buffer_index = 0
 token_buffer_read_index = 0
 token = 0x000
 isRead = False
 
 def interrupt_callback(x):
-    token = state_machine_rx.get()
-    token_buffer[token_buffer_index] = token
-    token_buffer_index = (token_buffer_index + 1) % TOKEN_BUFFER_SIZE
+    global token, token_buffer, token_buffer_index
+    while sm_rx.rx_fifo() > 0:
+        token = sm_rx.get()
+        token_buffer[token_buffer_index] = token
+        token_buffer_index = (token_buffer_index + 1) % TOKEN_BUFFER_SIZE
     isRead = True
 
 sm_rx.irq(interrupt_callback)
@@ -79,8 +83,11 @@ sm_rx.active(1)
 
 while True:
     if isRead:
-        
-        isRead = False
+        sleep(0.5)
+        token = token_buffer[token_buffer_read_index]
+        print(token)
+        token_buffer_read_index = (token_buffer_read_index + 1) % TOKEN_BUFFER_SIZE
+    isRead = True if token_buffer_index > token_buffer_read_index else False
 
 sm_rx.active(0)
 
