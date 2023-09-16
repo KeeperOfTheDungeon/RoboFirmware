@@ -14,26 +14,26 @@ def tx():
 
     #start bit
     pull()
-    wait(0, pins, 2)
+    wait(0, gpio, 2)
     set(x, 8)    .side(0)
-    wait(1, pins, 2)
+    wait(1, gpio, 2)
 
     # message
     label('loop')
-    wait(0, pins, 2)
+    wait(0, gpio, 2)
     out(pins, 1)
-    wait(1, pins, 2)
+    wait(1, gpio, 2)
     jmp(x_dec, 'loop')
 
     #end bit
-    wait(0, pins, 2)
-    mov(x,x)    .side(0)
-    wait(1, pins, 2)
-    
-    
-    wait(0, pins, 2)
+    wait(0, gpio, 2)
     mov(x,x)    .side(1)
-    wait(1, pins, 2)
+    wait(1, gpio, 2)
+    
+    
+    wait(0, gpio, 2)
+    mov(x,x)    .side(1)
+    wait(1, gpio, 2)
 
     wrap()
 
@@ -43,33 +43,24 @@ def rx():
 
     # wait for start bit
     label('ready')
-    wait(0, pins, 2)
-    wait(1, pins, 2)
+    wait(0, gpio, 2)
+    wait(1, gpio, 2)
     jmp(pin, 'ready')
     
     # accept message
     set(x, 8)
-    wait(0, pins, 2)
+    wait(0, gpio, 2)
     
     label('loop')
     
-    wait(1, pins, 2)
+    wait(1, gpio, 2)
     in_(pins, 1)
-    jmp(pin, 'control_bit')
-    wait(0, pins, 2)
+    wait(0, gpio, 2)
     
     jmp(x_dec, 'loop')
-    jmp('continue')
-    
-    # check if token is controll token
-    label('control_bit')
-    wait(0, pins, 2)
-    jmp(x_dec, 'loop')
-    irq(rel(0))
-    label('continue')
 
     # wait for end bit
-    wait(1, pins, 2)
+    wait(1, gpio, 2)
     jmp(pin, 'end_bit')
 
     # exception thrown to main thread
