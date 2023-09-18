@@ -2,101 +2,114 @@ from machine import Pin
 from time import sleep
 import rp2
 
-# clear programs form pio for clean restart
-rp2.PIO(0).remove_program()
-rp2.PIO(1).remove_program()
-
-@rp2.asm_pio(out_init=rp2.PIO.OUT_HIGH,
+def tx_factory(clock_pin):
+    @rp2.asm_pio(out_init=rp2.PIO.OUT_HIGH,
              out_shiftdir=rp2.PIO.SHIFT_RIGHT,
              sideset_init=rp2.PIO.OUT_HIGH)
-def tx():
-    wrap_target()
+    def tx():
+        wrap_target()
 
-    #start bit
-    pull()
-    wait(0, gpio, 2)
-    set(x, 8)    .side(0)
-    wait(1, gpio, 2)
+        #start bit
+        pull()
+        wait(0, gpio, clock_pin)
+        set(x, 8)    .side(0)
+        wait(1, gpio, clock_pin)
 
-    # message
-    label('loop')
-    wait(0, gpio, 2)
-    out(pins, 1)
-    wait(1, gpio, 2)
-    jmp(x_dec, 'loop')
+        # message
+        label('loop')
+        wait(0, gpio, clock_pin)
+        out(pins, 1)
+        wait(1, gpio, clock_pin)
+        jmp(x_dec, 'loop')
 
-    #end bit
-    wait(0, gpio, 2)
-    mov(x,x)    .side(1)
-    wait(1, gpio, 2)
-    
-    
-    wait(0, gpio, 2)
-    mov(x,x)    .side(1)
-    wait(1, gpio, 2)
+        #end bit
+        wait(0, gpio, clock_pin)
+        nop()    .side(1)
+        wait(1, gpio, clock_pin)
+        
+        
+        wait(0, gpio, clock_pin)
+        nop()    .side(1)
+        wait(1, gpio, clock_pin)
 
-    wrap()
+        wrap()
+    return tx
 
-@rp2.asm_pio(in_shiftdir=rp2.PIO.SHIFT_RIGHT)
-def rx():
-    wrap_target()
+def rx_factory(clock_pin):
+    @rp2.asm_pio(in_shiftdir=rp2.PIO.SHIFT_RIGHT,
+                fifo_join=rp2.PIO.JOIN_RX)
+    def rx():
+        wrap_target()
 
-    # wait for start bit
-    label('ready')
-    wait(0, gpio, 2)
-    wait(1, gpio, 2)
-    jmp(pin, 'ready')
-    
-    # accept message
-    set(x, 8)
-    wait(0, gpio, 2)
-    
-    label('loop')
-    
-    wait(1, gpio, 2)
-    in_(pins, 1)
-    wait(0, gpio, 2)
-    
-    jmp(x_dec, 'loop')
+        # wait for start bit
+        label('ready')
+        wait(0, gpio, clock_pin)
+        wait(1, gpio, clock_pin)
+        jmp(pin, 'ready')
 
-    # wait for end bit
-    wait(1, gpio, 2)
-    jmp(pin, 'end_bit')
+        # accept message
+        set(x, 8)
+        wait(0, gpio, clock_pin) 
+            
+        label('loop')
+            
+        wait(1, gpio, clock_pin)
+        in_(pins, 1)
+        wait(0, gpio, clock_pin)
+            
+        jmp(x_dec, 'loop')
 
-    # exception thrown to main thread
-    set(y, 1)
-    in_(y, 23)
-    
-    jmp('end')
+        # wait for end bit
+        wait(1, gpio, clock_pin)
+        jmp(pin, 'end_bit')
 
-    # normal execution
-    label('end_bit')
-    in_(null, 23)
-    
-    label('end')
-    push()
+        # exception as 10. LSB in word to main thread
+        set(y, 1)
+        in_(y, 23)
+            
+        jmp('end')
 
-    wrap()
+        # normal execution
+        label('end_bit')
+        in_(null, 23)
+            
+        label('end')
+        push()
 
-Pin(1, Pin.IN, Pin.PULL_UP)
+        wrap()
+    return rx
 
-sm_tx = rp2.StateMachine(0, tx, freq=1000000, out_base=Pin(0), sideset_base=Pin(0))
-sm_rx = rp2.StateMachine(1, rx, freq=10000000, in_base=Pin(1), jmp_pin=Pin(1))
+def main():
+    # clear programs form pio for clean restart
+    rp2.PIO(0).remove_program()
+    rp2.PIO(1).remove_program()
 
-sm_rx.irq(lambda x: {print('error')})
+    Pin(1, Pin.IN, Pin.PULL_UP)
 
-print('starting state machines')
+    tx = tx_factory(2)
+    rx = rx_factory(2)
 
-sm_tx.active(1)
-sm_rx.active(1)
+    sm_tx = rp2.StateMachine(0, tx, freq=1000000, out_base=Pin(0), sideset_base=Pin(0))
+    sm_rx = rp2.StateMachine(1, rx, freq=10000000, in_base=Pin(1), jmp_pin=Pin(1))
 
-while True:
-    x = input('Enter Number to send:\n')
-    sm_tx.put(int(x))
-    y = sm_rx.get()
-    print(y)
+    sm_rx.irq(lambda x: {print('error')})
 
-sm_tx.active(0)
-sm_rx.active(0)
+    print('starting state machines')
 
-print('finish')
+    sm_tx.active(1)
+    sm_rx.active(1)
+
+    while True:
+        x = input('Enter Number to send:\n')
+        sm_tx.put(int(x))
+        y = sm_rx.get()
+        print(y)
+
+    sm_tx.active(0)
+    sm_rx.active(0)
+
+    print('finish')
+
+if __name__ == '__main__':
+    main()
+
