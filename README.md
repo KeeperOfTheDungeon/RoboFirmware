@@ -1,20 +1,18 @@
-# Problems
+# RoboFirmware
+This is a project to implement a 9-bit USART Communication with the PIO of the Raspberry Pi Pico.
 
-Interrupts behave weird. An unrelative index has been behaving as an relative index,
-when using a callback on the state machine (not the pio) from the main thread.
+## Structure
+In this project contained are test scripts, which were part of the developement, and the main script of this project **pio_usart.py**, which implements a 9-bit usart communication.
 
-Iterrupt not thrown in case of error. Following messages are corrupted (only ones).
-No reset possible.
+## Execution
+The script can be executed with either the Thonny ide or Visual Studio Code with an add on installed as describe in [this documentation](https://datasheets.raspberrypi.com/pico/raspberry-pi-pico-python-sdk.pdf).
 
+For Visual Studio Code add on to work the python version installed on the computer must be 3.11 or newer.
+### Linux settings
+On linux systems the user has to be part of the dialout group.
+To do this execute:
 
-The commands wait and irq take 'pin' not 'pins' as an argument.
+`sudo usermod -a -G dialout ` *username*
 
-The command wait takes 'pins' instead of 'pin' suggested by the documentation.
-
-The end bit problem was solved by adding a wait for the clock signal to go to zero again.
-
-The state machines can keep running as long as the micro controller is connected to a power source, thats why interrupts can be continuisly triggered.
-
-
-
-The end bit is send if the message contains zeros in the more significant bits, since it keeps sending the most significant bit if not told otherwise
+Where *username* refers to your username. Otherwise the ide can't connect with the usb device.
+Alternativelly, but not recommended, the ide or code editor can be launched with root privileges.
